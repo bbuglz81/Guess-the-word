@@ -2,13 +2,26 @@ const guessedLettersList = document.querySelector(".guessed-letters");
 const button = document.querySelector(".guess");
 const letterGuess = document.querySelector(".letter");
 const wordInProgress = document.querySelector(".word-in-progress");
-const remainingGuesses = document.querySelector(".remaining");
+const remainingGuessesElement = document.querySelector(".remaining");
 const remainingGuessesSpan = document.querySelector(".remaining span");
 const message = document.querySelector(".message");
 const playAgainButton = document.querySelector(".play-again");
 
-const word = "magnolia";
+let word = "magnolia";
 const guessedLetters = [];
+let remainingGuesses = 8;
+
+const getWord = async function () {
+    const response = await fetch("https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt");
+    const wordList = await response.text();
+    //console.log(wordList);
+    const wordArray = wordList.split("\n");
+    //console.log(wordArray);
+    const randomIndex = Math.floor(Math.random() * wordArray.length);
+    word = wordArray[randomIndex].trim();
+    letterFiller(word);
+};
+getWord();
 
 const letterFiller = function (word) {
     const letterFillerSymbol = [];
@@ -18,8 +31,6 @@ const letterFiller = function (word) {
     }
     wordInProgress.innerText = letterFillerSymbol.join("");
 };
-
-letterFiller(word);
 
 button.addEventListener("click", function(e) {
     e.preventDefault();
@@ -59,6 +70,7 @@ const makeGuess = function (guess) {
         guessedLetters.push(guess);
         console.log(guessedLetters);
         showGuesses();
+        countRemainingGuesses(guess);
         updateWordInProgress(guessedLetters);
     }
 };
@@ -86,6 +98,27 @@ const updateWordInProgress = function (guessedLetters) {
     }
     wordInProgress.innerText = wordReveal.join("");
     playerWon();
+};
+
+const countRemainingGuesses = function (guess) {
+    const upperWord = word.toUpperCase();
+    if (!upperWord.includes(guess)) {
+        message.innerText = `No ${guess}'s, sorry!`;
+        remainingGuesses -= 1;
+    }
+    else {
+        message.innerText = `Yup, there's at least one ${guess}`;
+    }
+    if (remainingGuesses === 0) {
+        message.innerHTML = `Game over! The word was <span class="highlight">${word}</span>. Good luck next time!`;
+        remainingGuessesSpan.innerText = `${remainingGuesses} guesses`
+    }
+    else if (remainingGuesses === 1) {
+        remainingGuessesSpan.innerText = `${remainingGuesses} guess`;
+    }
+    else {
+        remainingGuessesSpan.innerText = `${remainingGuesses} guesses`;
+    }
 };
 
 const playerWon = function () {
